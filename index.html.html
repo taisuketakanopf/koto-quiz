@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>箏クイズ ～教科書の内容を復習しよう～</title>
+<style>
+:root{
+  --paper:#fffaf2;--ink:#2f2a24;--muted:#70675d;--line:#dfd3c2;
+  --accent:#d8871c;--good:#28764d;--bad:#a34a3e;--blue:#437a9e
+}
+*{box-sizing:border-box}
+body{margin:0;background:#f4efe8;color:var(--ink);font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",system-ui,sans-serif}
+.wrap{max-width:820px;margin:auto;padding:20px}
+header{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:14px}
+h1{margin:0 0 8px;font-family:"Yu Mincho","Hiragino Mincho ProN",serif;font-size:clamp(1.65rem,4vw,2.35rem)}
+.lead{margin:0;color:var(--muted);line-height:1.7}
+.quizbox{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:20px}
+.progress{display:flex;align-items:center;gap:10px;margin-bottom:16px;color:var(--muted)}
+.bar{height:8px;flex:1;background:#eee5d9;border-radius:999px;overflow:hidden}
+.bar>span{display:block;height:100%;background:var(--accent);width:0;transition:.2s}
+.pagehint{display:inline-block;margin-bottom:8px;padding:3px 9px;border-radius:999px;background:#f3e4ca;color:#75551f;font-size:.82rem;font-weight:700}
+.qno{font-size:.82rem;color:var(--muted);margin-bottom:5px}
+.question{font-size:1.18rem;line-height:1.55;font-weight:800;margin-bottom:14px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.option{min-height:52px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:white;text-align:left;font:inherit;cursor:pointer}
+.option.correct{border-color:var(--good);background:#edf8f1}
+.option.wrong{border-color:var(--bad);background:#fbefed}
+.option:disabled{cursor:default;color:var(--ink)}
+.feedback{margin-top:14px;min-height:60px;padding:12px 14px;border-radius:11px;background:#f2ece3;line-height:1.65}
+.feedback.good{background:#edf8f1;color:#185b39}
+.feedback.bad{background:#fbefed;color:#7d352e}
+.actions{display:flex;justify-content:flex-end;margin-top:14px}
+.btn{min-height:44px;padding:9px 14px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink);font:inherit;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:white;font-weight:700}
+.btn.blue{background:var(--blue);border-color:var(--blue);color:white;font-weight:700}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.result{text-align:center;padding:10px}
+.score{font-size:2.6rem;font-weight:900;color:var(--accent);margin:6px 0}
+.result p{line-height:1.7;color:var(--muted)}
+.result-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.start-screen{text-align:center;padding:34px 16px}
+.start-screen h2{margin:0 0 12px;font-size:1.55rem}
+.start-screen p{max-width:560px;margin:0 auto 18px;color:var(--muted);line-height:1.8}
+.start-note{display:inline-block;margin:0 auto 20px;padding:10px 14px;border-radius:12px;background:#f3e4ca;color:#6e521f;font-weight:700;line-height:1.6}
+.start-button{font-size:1.08rem;min-width:190px}
+.coverage{margin:14px auto 18px;max-width:520px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;line-height:1.7;color:var(--muted)}
+.coverage strong{color:var(--ink)}
+.small-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.btn.subtle{background:#fff;color:var(--muted)}
+
+
+
+
+
+@media(max-width:600px){.wrap{padding:12px}.options{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>箏クイズ ～教科書の内容を復習しよう～</h1>
+  <p class="lead">教科書 p.34〜43 を参考にしながら、箏のクイズに挑戦しよう。<br>分からない問題は、写真・図・説明を探してOKです。</p>
+</header>
+<section class="quizbox">
+  <div class="progress">
+    <span id="progText"></span>
+    <div class="bar"><span id="barFill"></span></div>
+  </div>
+  <div id="quizArea"></div>
+</section>
+</div>
+
+
+<script>
+(()=>{
+  const QUESTION_BANK=[{"q": "箏の糸は、全部で何本ありますか。", "page": "p.35", "opts": ["12本", "14本", "13本", "15本"], "ans": 2, "fb": "13本です。教科書の図で、糸の名称も確認してみましょう。", "id": "q01"}, {"q": "箏の糸の名前で、「十」の次に続く正しい並びはどれですか。", "page": "p.35", "opts": ["斗・為・巾", "斗・巾・為", "為・斗・巾", "巾・為・斗"], "ans": 0, "fb": "十の次は、斗（と）・為（い）・巾（きん）です。", "id": "q02"}, {"q": "平調子では、一の糸と同じ高さに調弦する糸はどれですか。", "page": "p.35", "opts": ["六の糸", "三の糸", "二の糸", "五の糸"], "ans": 3, "fb": "平調子では、一の糸は五の糸と同じ高さに調弦します。", "id": "q03"}, {"q": "糸を支え、立てる位置を変えることで音の高さを調整するものは何ですか。", "page": "p.35", "opts": ["竜角", "柱", "雲角", "竜甲"], "ans": 1, "fb": "柱（じ）です。柱を立てる位置によって音の高さを調整します。", "id": "q04"}, {"q": "箏の胴の上面につけられた名称はどれですか。", "page": "p.35", "opts": ["竜尾", "竜舌", "竜甲", "磯"], "ans": 2, "fb": "竜甲（りゅうこう）です。箏の各部には、竜の姿になぞらえた名称があります。", "id": "q05"}, {"q": "箏を演奏するとき、演奏者が座るのはどちら側ですか。", "page": "p.36", "opts": ["竜尾側", "竜角側", "雲角側", "どちら側でも同じ"], "ans": 1, "fb": "竜角（りゅうかく）側に座って演奏します。", "id": "q06"}, {"q": "演奏者から遠い側の端は何と呼ばれますか。", "page": "p.35", "opts": ["竜頭", "竜尾", "竜甲", "竜角"], "ans": 1, "fb": "竜尾（りゅうび）です。", "id": "q07"}, {"q": "竜角の反対側で、糸を支えている部分は何と呼ばれますか。", "page": "p.35", "opts": ["四分六", "雲角", "竜舌", "磯"], "ans": 1, "fb": "雲角（うんかく）です。教科書の各部名称の図で位置を確認できます。", "id": "q08"}, {"q": "竜角側にある端の名称はどれですか。", "page": "p.35", "opts": ["竜尾", "雲角", "竜頭", "磯"], "ans": 2, "fb": "竜角側の端は竜頭（りゅうとう）です。竜角と竜頭は同じ側にありますが、別の部分を指す名称です。", "id": "q09"}, {"q": "箏の側面につけられた名称はどれですか。", "page": "p.35", "opts": ["竜甲", "磯", "竜舌", "雲角"], "ans": 1, "fb": "磯（いそ）です。竜甲は胴の上面、磯は側面につけられた名称です。", "id": "q10"}, {"q": "箏爪をはめる右手の指の組み合わせはどれですか。", "page": "p.35", "opts": ["親指・人さし指・中指", "親指・中指・薬指", "人さし指・中指・薬指", "親指・人さし指・薬指"], "ans": 0, "fb": "右手の親指・人さし指・中指に爪をはめて演奏します。", "id": "q11"}, {"q": "生田流で一般的に使われる爪はどれですか。", "page": "p.35〜36", "opts": ["丸爪", "角爪", "平爪", "三角爪"], "ans": 1, "fb": "生田流では角爪が一般的に使われます。", "id": "q12"}, {"q": "山田流で一般的に使われる爪はどれですか。", "page": "p.35〜36", "opts": ["丸爪", "角爪", "平爪", "三角爪"], "ans": 0, "fb": "山田流では丸爪が一般的に使われます。", "id": "q13"}, {"q": "一の糸と巾の糸の柱は、どのように立てますか。", "page": "p.35", "opts": ["柱を使わない", "足の片方を磯にかけて立てる", "2本の柱を重ねて立てる", "柱を横向きに寝かせる"], "ans": 1, "fb": "一の糸と巾の糸の柱は、足の片方を磯にかけて立てます。", "id": "q14"}, {"q": "《さくらさくら》で使われている調弦はどれですか。", "page": "p.42", "opts": ["乃木調子", "平調子", "雲井調子", "楽調子"], "ans": 1, "fb": "《さくらさくら》は平調子で演奏します。", "id": "q15"}, {"q": "縦譜では、どの糸を弾くかを何によって表していますか。", "page": "p.38", "opts": ["音名", "階名", "糸の名称", "指番号だけ"], "ans": 2, "fb": "縦譜では、一・二・三……などの糸の名称で、弾く糸を表します。", "id": "q16"}, {"q": "縦譜では、右手の指番号は糸の名称のどちら側に書かれますか。", "page": "p.38", "opts": ["右側", "左側", "上側", "下側"], "ans": 0, "fb": "右手の指番号は、糸の名称の右側に算用数字で示されます。", "id": "q17"}, {"q": "縦譜で右手の指番号が何も書かれていない場合は、どの指で弾きますか。", "page": "p.38", "opts": ["人さし指", "中指", "親指", "薬指"], "ans": 2, "fb": "何も書かれていない場合は、親指で弾きます。", "id": "q18"}, {"q": "親指と中指で同時に2本の糸を弾く奏法はどれですか。", "page": "p.41", "opts": ["押し手", "合せ爪", "引き色", "かき爪"], "ans": 1, "fb": "合せ爪です。親指と中指で同時に2本の糸を弾きます。", "id": "q19"}, {"q": "左手で糸を押して、音の高さを上げる奏法はどれですか。", "page": "p.41", "opts": ["引き色", "押放", "押し手", "割り爪"], "ans": 2, "fb": "押し手です。左手で糸を押して音の高さを上げます。", "id": "q20"}, {"q": "押して上げた音を、左手の力を緩めて元の高さに戻す奏法はどれですか。", "page": "p.41", "opts": ["押放", "合せ爪", "引き色", "押し手"], "ans": 0, "fb": "押放（おしはなし）です。左手の力を緩めて、音高を元に戻します。", "id": "q21"}, {"q": "左手で糸を上下に動かして、音を揺らす奏法はどれですか。", "page": "p.41", "opts": ["割り爪", "引き色", "押放", "合せ爪"], "ans": 1, "fb": "引き色です。左手で糸を上下に動かして音を揺らします。", "id": "q22"}, {"q": "「かき爪」は、どのような奏法ですか。", "page": "p.41", "opts": ["1本の糸を何度も連打する", "隣り合った2本の糸をほぼ同時に弾く", "左手で音高を上げる", "親指と中指で2本を同時に弾く"], "ans": 1, "fb": "かき爪は、隣り合った2本の糸をほぼ同時に弾く奏法です。", "id": "q23"}, {"q": "「割り爪」は、どの順番で弾く奏法ですか。", "page": "p.41", "opts": ["中指→人さし指", "親指→中指", "人さし指→中指", "中指→親指"], "ans": 2, "fb": "割り爪は、人さし指、中指の順で演奏します。", "id": "q24"}, {"q": "親指で糸を弾くとき、爪はどちら向きに動かしますか。", "page": "p.37", "opts": ["糸の手前から向こう側へ", "糸の向こう側から手前へ", "糸に対して上下に", "どちら向きでもよい"], "ans": 0, "fb": "親指は、糸の手前から向こう側に向かって爪を押し付けるようにして弾きます。", "id": "q25"}, {"q": "この教科書で「向こう指」と呼んでいるのは、どの指の組み合わせですか。", "page": "p.36〜37", "opts": ["人さし指・中指・薬指", "親指・人さし指・中指", "親指・中指・薬指", "中指・薬指・小指"], "ans": 0, "fb": "親指で弾くときに竜角側へ位置させる、人さし指・中指・薬指を、この教科書では「向こう指」と呼んでいます。", "id": "q26"}, {"q": "角爪を使う場合の座り方として正しいものはどれですか。", "page": "p.36", "opts": ["膝を斜め左に向け、右膝の外側が磯に当たるように座る", "膝を正面に向け、両膝が磯に当たるように座る", "膝を斜め右に向け、左膝の外側が磯に当たるように座る", "箏に対して真横を向いて座る"], "ans": 0, "fb": "角爪の場合は、膝を斜め左に向け、右膝の外側が磯に当たるように座ります。目安は、膝の右端が竜角の延長線上にくる位置です。", "id": "q27"}];
+  const ROUND_SIZE=10;
+  const STORAGE_KEY='koto_quiz_seen_v1';
+
+  let quiz=[];
+  let idx=0;
+  let score=0;
+  let answered=false;
+  let wrongQuestions=[];
+  let reviewMode=false;
+
+  function shuffle(items){
+    const a=[...items];
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function getSeenIds(){
+    try{
+      const raw=localStorage.getItem(STORAGE_KEY);
+      const parsed=raw ? JSON.parse(raw) : [];
+      if(!Array.isArray(parsed)) return [];
+      const valid=new Set(QUESTION_BANK.map(q=>q.id));
+      return parsed.filter(id=>valid.has(id));
+    }catch(e){
+      return [];
+    }
+  }
+
+  function saveSeenIds(ids){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...new Set(ids)]));
+    }catch(e){}
+  }
+
+  function resetSeenIds(){
+    try{
+      localStorage.removeItem(STORAGE_KEY);
+    }catch(e){}
+  }
+
+  function prepareQuestion(q){
+    const choices=q.opts.map((label,i)=>({label,correct:i===q.ans}));
+    return {...q, choices:shuffle(choices)};
+  }
+
+  function selectRound(){
+    const seenIds=new Set(getSeenIds());
+    const unseen=shuffle(QUESTION_BANK.filter(q=>!seenIds.has(q.id)));
+    const seen=shuffle(QUESTION_BANK.filter(q=>seenIds.has(q.id)));
+
+    let selected=[];
+    if(unseen.length>=ROUND_SIZE){
+      selected=unseen.slice(0,ROUND_SIZE);
+    }else{
+      selected=unseen.concat(seen.slice(0,ROUND_SIZE-unseen.length));
+    }
+
+    // すでに全問に一度以上出会っている場合は、全体からランダムに10問
+    if(unseen.length===0){
+      selected=shuffle(QUESTION_BANK).slice(0,ROUND_SIZE);
+    }
+
+    return selected;
+  }
+
+  function showStart(){
+    const area=document.getElementById('quizArea');
+    const prog=document.getElementById('progText');
+    const fill=document.getElementById('barFill');
+    const seenCount=getSeenIds().length;
+
+    prog.textContent='スタート';
+    fill.style.width='0%';
+
+    area.innerHTML=
+      '<div class="start-screen">'+
+        '<h2>箏の内容を復習しよう</h2>'+
+        '<p>教科書を見ながら取り組んでOKです。分からないときは、写真・図・説明から答えを探してみよう。</p>'+
+        '<div class="start-note">全'+QUESTION_BANK.length+'問の中から、1回につき10問がランダムで出題されます。<br>2回目以降は、まだ出ていない問題が優先して出ます。</div>'+
+        '<div class="coverage">これまでに出た問題： <strong>'+seenCount+' / '+QUESTION_BANK.length+'問</strong>'+
+          (seenCount===QUESTION_BANK.length ? '<br>全問に一度以上挑戦しました。' : '<br>3回挑戦すると、全'+QUESTION_BANK.length+'問に一度は挑戦できます。')+
+        '</div>'+
+        '<button type="button" class="btn primary start-button" id="startQuiz">問題を始める</button>'+
+        '<div class="small-actions"><button type="button" class="btn subtle" id="resetHistory">出題履歴をリセット</button></div>'+
+      '</div>';
+
+    document.getElementById('startQuiz').addEventListener('click',newRound);
+    document.getElementById('resetHistory').addEventListener('click',()=>{
+      resetSeenIds();
+      showStart();
+    });
+  }
+
+  function newRound(){
+    quiz=selectRound().map(prepareQuestion);
+    idx=0;
+    score=0;
+    answered=false;
+    wrongQuestions=[];
+    reviewMode=false;
+
+    const seenIds=getSeenIds();
+    saveSeenIds(seenIds.concat(quiz.map(q=>q.id)));
+
+    render();
+  }
+
+  function startWrongReview(){
+    quiz=wrongQuestions.map(q=>prepareQuestion(q));
+    idx=0;
+    score=0;
+    answered=false;
+    wrongQuestions=[];
+    reviewMode=true;
+    render();
+  }
+
+  function render(){
+    const area=document.getElementById('quizArea');
+    const prog=document.getElementById('progText');
+    const fill=document.getElementById('barFill');
+
+    if(idx>=quiz.length){
+      prog.textContent='終了';
+      fill.style.width='100%';
+
+      const total=quiz.length;
+      const wrongCount=wrongQuestions.length;
+      const seenCount=getSeenIds().length;
+      const heading=reviewMode ? '復習おつかれさまでした。' : 'おつかれさまでした。';
+
+      area.innerHTML=
+        '<div class="result">'+
+          '<div>'+heading+'</div>'+
+          '<div class="score">'+score+' / '+total+'</div>'+
+          (!reviewMode
+            ? '<p>これまでに <strong>'+seenCount+' / '+QUESTION_BANK.length+'問</strong> が出題されました。</p>'
+            : '<p>分からなかったところは、教科書でもう一度確認してみよう。</p>')+
+          '<div class="result-actions">'+
+            (!reviewMode && wrongCount>0
+              ? '<button type="button" class="btn blue" id="reviewWrong">間違えた問題だけ復習</button>'
+              : '')+
+            '<button type="button" class="btn primary" id="newRound">'+
+              (seenCount<QUESTION_BANK.length ? '次の10問に挑戦' : 'もう10問に挑戦')+
+            '</button>'+
+            '<button type="button" class="btn" id="backStart">スタート画面へ</button>'+
+          '</div>'+
+        '</div>';
+
+      const reviewBtn=document.getElementById('reviewWrong');
+      if(reviewBtn) reviewBtn.addEventListener('click',startWrongReview);
+      document.getElementById('newRound').addEventListener('click',newRound);
+      document.getElementById('backStart').addEventListener('click',showStart);
+      return;
+    }
+
+    const q=quiz[idx];
+    answered=false;
+    prog.textContent=(idx+1)+' / '+quiz.length;
+    fill.style.width=(idx/quiz.length*100)+'%';
+
+    area.innerHTML=
+      '<div class="qno">'+(reviewMode?'復習 ':'問題 ')+(idx+1)+'</div>'+
+      '<div class="pagehint">教科書 '+q.page+'</div>'+
+      '<div class="question">'+q.q+'</div>'+
+      '<div class="options">'+q.choices.map((c,i)=>
+        '<button type="button" class="option" data-i="'+i+'">'+c.label+'</button>'
+      ).join('')+'</div>'+
+      '<div class="feedback" id="feedback" style="display:none"></div>'+
+      '<div class="actions"><button type="button" class="btn primary" id="next" disabled>次の問題</button></div>';
+
+    area.querySelectorAll('.option').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(answered)return;
+        answered=true;
+
+        const chosen=Number(btn.dataset.i);
+        const selected=q.choices[chosen];
+
+        area.querySelectorAll('.option').forEach((b,i)=>{
+          b.disabled=true;
+          if(q.choices[i].correct)b.classList.add('correct');
+        });
+
+        const fb=document.getElementById('feedback');
+        fb.style.display='block';
+
+        if(selected.correct){
+          score++;
+          fb.className='feedback good';
+          fb.textContent='○ '+q.fb;
+        }else{
+          btn.classList.add('wrong');
+          fb.className='feedback bad';
+          fb.textContent='△ '+q.fb;
+          wrongQuestions.push({
+            id:q.id, q:q.q, page:q.page, opts:q.opts, ans:q.ans, fb:q.fb
+          });
+        }
+
+        document.getElementById('next').disabled=false;
+      });
+    });
+
+    document.getElementById('next').addEventListener('click',()=>{
+      idx++;
+      render();
+    });
+  }
+
+  showStart();
+})();
+</script>
+
+
+</body>
+</html>
